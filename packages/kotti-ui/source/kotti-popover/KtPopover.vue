@@ -38,6 +38,7 @@ import { mixin as clickaway } from 'vue-clickaway'
 import { isYocoIcon } from '../validators'
 
 import IconTextItem from './components/IconTextItem.vue'
+import { KottiPopover } from './types'
 
 const optionIsValid = (option) =>
 	typeof option === 'object' &&
@@ -48,12 +49,13 @@ const optionIsValid = (option) =>
 	['undefined', 'string'].includes(typeof option.label) &&
 	['undefined', 'string'].includes(typeof option.dataTest)
 
-export default defineComponent({
+export default defineComponent<KottiPopover.PropsInternal>({
 	name: 'KtPopover',
-	components: { IconTextItem },
+	components: {
+		IconTextItem,
+	},
 	mixins: [clickaway],
 	props: {
-		content: { default: '', type: String },
 		forceShowPopover: { default: null, type: Boolean },
 		options: {
 			default: () => [],

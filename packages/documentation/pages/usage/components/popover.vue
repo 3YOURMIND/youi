@@ -63,14 +63,14 @@ If the parent element has an `overflow` attribute, `popper.js` will handle that 
 <div class="element-example" style="overflow: hidden;">
 	<KtPopover placement="left">
 		<KtButton v-text="'Left placement popover'"/>
-		<div slot="content" v-text="'The popver is placed right because of flip:true'"/>
+		<div slot="content" v-text="'The popover is placed right because of flip:true'"/>
 	</KtPopover>
 	<br/>
 	<br/>
 	<br/>
 	<KtPopover placement="bottom">
 		<KtButton v-text="'Bottom placement popover'"/>
-		<div slot="content" v-text="'The popver is placed top because of preventOverflow: true'"/>
+		<div slot="content" v-text="'The popover is placed top because of preventOverflow: true'"/>
 	</KtPopover>
 </div>
 
