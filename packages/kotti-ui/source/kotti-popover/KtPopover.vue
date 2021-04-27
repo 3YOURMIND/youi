@@ -4,10 +4,10 @@
 		class="kt-popover"
 		:class="{ showPopper }"
 	>
-		<div ref="anchor" @click="handleAnchorClick">
+		<div ref="anchorRef" @click="handleAnchorClick">
 			<slot>Anchor</slot>
 		</div>
-		<div v-if="showPopper" ref="content" :class="popperClass">
+		<div v-if="showPopper" ref="contentRef" :class="popperClass">
 			<slot :close="handleClickaway" name="content">
 				<IconTextItem
 					v-for="(option, index) in options"
@@ -23,13 +23,22 @@
 	</div>
 </template>
 
-<script>
+<script lang="ts">
 import { createPopper } from '@popperjs/core'
+import {
+	computed,
+	defineComponent,
+	onMounted,
+	onUnmounted,
+	ref,
+	watch,
+} from '@vue/composition-api'
 import { mixin as clickaway } from 'vue-clickaway'
 
 import { isYocoIcon } from '../validators'
 
 import IconTextItem from './components/IconTextItem.vue'
+import { KottiPopover } from './types'
 
 const optionIsValid = (option) =>
 	typeof option === 'object' &&
@@ -40,12 +49,13 @@ const optionIsValid = (option) =>
 	['undefined', 'string'].includes(typeof option.label) &&
 	['undefined', 'string'].includes(typeof option.dataTest)
 
-export default {
+export default defineComponent<KottiPopover.PropsInternal>({
 	name: 'KtPopover',
-	components: { IconTextItem },
+	components: {
+		IconTextItem,
+	},
 	mixins: [clickaway],
 	props: {
-		content: { default: '', type: String },
 		forceShowPopover: { default: null, type: Boolean },
 		options: {
 			default: () => [],
@@ -55,70 +65,20 @@ export default {
 		placement: { default: 'bottom', type: String },
 		size: { default: 'auto', type: String },
 	},
-	data() {
-		return {
-			showPopper: false,
-			popper: null,
-		}
-	},
-	computed: {
-		popperClass() {
-			const classes = ['kt-popper', `kt-popper--size-${this.size}`]
+	setup(props) {
+		const showPopper = ref(false)
+		const popper = ref(null)
 
-			if (this.options.length >= 1) classes.push(`kt-popper--has-options`)
+		const anchorRef = ref<HTMLElement | null>(null)
+		const contentRef = ref<HTMLElement | null>(null)
 
-			return classes
-		},
-		forceShowPopoverIsNull() {
-			return this.forceShowPopover === null
-		},
-	},
-	watch: {
-		showPopper() {
-			if (this.showPopper) {
-				this.$nextTick(() => {
-					this.initPopper()
-				})
-			}
-		},
-		forceShowPopover(val) {
-			if (val !== null) {
-				this.showPopper = val
-			}
-		},
-	},
-	mounted() {
-		if (!this.forceShowPopoverIsNull) {
-			this.showPopper = this.forceShowPopover
-		}
-	},
-	ready() {
-		if (this.forceShowPopoverIsNull) {
-			this.$nextTick(() => {
-				if (this.showPopper) {
-					this.initPopper()
-				}
-			})
-		}
-	},
-	destroyed() {
-		this.destroyPopper()
-	},
-	methods: {
-		handleItemClick(option) {
-			if (!option.isDisabled && option.onClick) option.onClick()
-		},
-		handleAnchorClick() {
-			if (!this.forceShowPopoverIsNull) return
-			this.showPopper = !this.showPopper
-		},
-		handleClickaway() {
-			if (!this.forceShowPopoverIsNull) return
-			this.showPopper = false
-		},
-		initPopper() {
+		const forceShowPopoverIsNull = computed(
+			() => props.forceShowPopover === null,
+		)
+
+		const initPopper = () => {
 			const propsOptions = {
-				placement: this.placement,
+				placement: props.placement,
 				modifiers: [
 					{
 						name: 'flip',
@@ -144,22 +104,67 @@ export default {
 				],
 			}
 
-			this.popper = createPopper(this.$refs.anchor, this.$refs.content, {
+			popper.value = createPopper(anchorRef.value, contentRef.value, {
 				...propsOptions,
 			})
-		},
-		destroyPopper() {
-			if (this.forceShowPopoverIsNull && this.popper) {
-				this.popper.destroy()
-				this.popper = null
+		}
+
+		watch(showPopper, (value) => {
+			if (value) initPopper()
+		})
+
+		watch(
+			() => props.forceShowPopover,
+			(value) => {
+				if (value !== null) {
+					showPopper.value = value
+				}
+			},
+		)
+
+		onMounted(() => {
+			if (!forceShowPopoverIsNull.value) {
+				showPopper.value = props.forceShowPopover
 			}
-		},
+		})
+
+		onUnmounted(() => {
+			if (forceShowPopoverIsNull.value && popper.value) {
+				popper.value.destroy()
+				popper.value = null
+			}
+		})
+
+		return {
+			anchorRef,
+			contentRef,
+			handleAnchorClick: () => {
+				if (!forceShowPopoverIsNull.value) return
+				showPopper.value = !showPopper.value
+			},
+			handleClickaway: () => {
+				if (!forceShowPopoverIsNull.value) return
+				showPopper.value = false
+			},
+			handleItemClick: (option) => {
+				if (!option.isDisabled && option.onClick) option.onClick()
+			},
+			popperClass: computed(() => {
+				const classes = ['kt-popper', `kt-popper--size-${props.size}`]
+
+				if (props.options.length >= 1) classes.push(`kt-popper--has-options`)
+
+				return classes
+			}),
+			showPopper,
+		}
 	},
-}
+})
 </script>
 
 <style lang="scss" scoped>
 @import '../kotti-style/_variables.scss';
+
 .kt-popover {
 	display: inline-block;
 	&-item {
