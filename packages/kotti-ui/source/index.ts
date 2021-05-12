@@ -71,6 +71,8 @@ import { KtInlineEdit } from './kotti-inline-edit'
 export * from './kotti-inline-edit'
 import { KtInput } from './kotti-input'
 export * from './kotti-input'
+import { KtLabelValue } from './kotti-label-value'
+export * from './kotti-label-value'
 import { KtLine } from './kotti-line'
 export * from './kotti-line'
 import { KtModal } from './kotti-modal'
@@ -150,6 +152,7 @@ export default {
 			KtHeading,
 			KtInlineEdit,
 			KtInput,
+			KtLabelValue,
 			KtLine,
 			KtModal,
 			KtNavbar,
