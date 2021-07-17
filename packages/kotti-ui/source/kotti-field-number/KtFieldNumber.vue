@@ -1,6 +1,7 @@
 <template>
 	<KtField
 		v-bind="{ field }"
+		containerPadding="0 0.2rem"
 		:getEmptyValue="() => null"
 		:helpTextSlot="$slots.helpText"
 	>
@@ -324,7 +325,7 @@ export default defineComponent({
 			/* stylelint-disable */
 			.kt-field-number__button {
 				height: map.get($sizes, $type);
-				width: map.get($sizes, $type);
+				width: map.get($sizes, $type) / 2;
 			}
 			.kt-field-number__middle {
 				height: map.get($sizes, $type);
